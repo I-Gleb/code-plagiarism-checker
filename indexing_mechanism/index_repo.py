@@ -8,7 +8,7 @@ def indexDirectory(dirPath : str, db : mysql.connector.connection_cext.CMySQLCon
     mycursor = db.cursor()
 
     mycursor.execute("DROP TABLE IF EXISTS tokens")
-    mycursor.execute("CREATE TABLE tokens (token VARCHAR(255), file VARCHAR(255))")
+    mycursor.execute("CREATE TABLE tokens (token VARCHAR(255), file VARCHAR(511))")
    
     for dirpath, _, filenames in os.walk(dirPath):
         if ".git" in dirpath: continue
@@ -37,10 +37,19 @@ def indexDirectory(dirPath : str, db : mysql.connector.connection_cext.CMySQLCon
 
 
 def main(argv : list[str]):
-    opt_info = "index_repo.py -d <database_name> -h <host> -u <user> -p <password> <repo_path>"
+    opt_info = """Usage:
+        python3 index_repo.py [OPTIONS] <repo_path>
+    Available options:
+        --db-name TEXT      Database name
+        --db-host TEXT      Database host
+        --db-port INT       Database port number
+        --db-user TEXT      Database user name
+        --db-password TEXT  Database user password
+        -h, --help
+    """
 
     try:
-        opts, args = getopt.getopt(argv,"d:h:u:p:",["help","database=","host=","user=","password="])
+        opts, args = getopt.getopt(argv,"h",["help","db-name=","db-host=","db-port=","db-user=","db-password="])
     except getopt.GetoptError:
         print(opt_info)
         sys.exit(2)
@@ -50,28 +59,32 @@ def main(argv : list[str]):
         sys.exit(2)
 
     repo = args[0]
-    myDatabase = "mydb"
-    myHost = "localhost"
-    myUser = "default"
-    myPassword = ""
+    dbDatabase = "mydb"
+    dbHost = "localhost"
+    dbPort = 3306
+    dbUser = "default"
+    dbPassword = ""
     for opt, arg in opts:
-        if opt == '--help':
+        if opt in ("--help", "-h"):
             print(opt_info)
             sys.exit()
-        elif opt in ("-d", "--database"):
-            myDatabase = arg
-        elif opt in ("-h", "--host"):
-            myHost = arg
-        elif opt in ("-u", "--user"):
-            myUser = arg
-        elif opt in ("-p", "--password"):
-            myPassword = arg
+        elif opt in ("--db-name"):
+            dbDatabase = arg
+        elif opt in ("--db-host"):
+            dbHost = arg
+        elif opt in ("--db-port"):
+            dbPort = int(arg)
+        elif opt in ("--db-user"):
+            dbUser = arg
+        elif opt in ("--db-password"):
+            dbPassword = arg
 
     mydb = mysql.connector.connect(
-        host=myHost,
-        user=myUser,
-        password=myPassword,
-        database=myDatabase
+        host=dbHost,
+        user=dbUser,
+        port=dbPort,
+        password=dbPassword,
+        database=dbDatabase
     )
 
     indexDirectory(repo, mydb)

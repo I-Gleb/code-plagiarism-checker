@@ -32,16 +32,20 @@ def indexDirectory(dirPath : str, db : mysql.connector.connection_cext.CMySQLCon
             if my_lexer != None:
                 name_tokens = filter(lambda t : (str(t[0]) == "Token.Name"), lex(text, my_lexer))
                 sql = "INSERT INTO tokens (token, file) VALUES (%s, %s)"
-                mycursor.executemany(sql, list(map(lambda t : (t[1], fullpath), name_tokens)))
-    db.commit()
+                mycursor.executemany(sql, list(set(map(lambda t : (t[1], fullpath), name_tokens))))
+                db.commit()
 
 
 def main(argv : list[str]):
     opt_info = "index_repo.py -d <database_name> -h <host> -u <user> -p <password> <repo_path>"
 
     try:
-        opts, args = getopt.getopt(argv,"hd:h:u:p:",["database=","host=","user=","password="])
+        opts, args = getopt.getopt(argv,"d:h:u:p:",["help","database=","host=","user=","password="])
     except getopt.GetoptError:
+        print(opt_info)
+        sys.exit(2)
+
+    if (len(args) == 0):
         print(opt_info)
         sys.exit(2)
 
@@ -51,7 +55,7 @@ def main(argv : list[str]):
     myUser = "default"
     myPassword = ""
     for opt, arg in opts:
-        if opt == '-h':
+        if opt == '--help':
             print(opt_info)
             sys.exit()
         elif opt in ("-d", "--database"):

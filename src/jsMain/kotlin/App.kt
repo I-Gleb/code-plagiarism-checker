@@ -35,6 +35,7 @@ val App = FC<Props> {
             reader.readAsText(file)
             reader.onload = {
                 scope.launch {
+                    analizeResult = "In process"
                     myClient.post("/analizeFile") {
                         contentType(ContentType.Application.Json)
                         setBody(reader.result.toString())

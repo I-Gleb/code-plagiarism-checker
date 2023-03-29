@@ -1,11 +1,16 @@
+
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import react.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 import org.w3c.files.FileReader
+import react.FC
+import react.Props
 import react.dom.html.ReactHTML.p
+import react.useEffectOnce
+import react.useState
 
 private val scope = MainScope()
 
@@ -34,7 +39,7 @@ val App = FC<Props> {
                         contentType(ContentType.Application.Json)
                         setBody(reader.result.toString())
                     }
-                    analizeResult = getResult()
+                    analizeResult = "Result for ${file.name}: ${getResult()}"
                 }
             }
         }

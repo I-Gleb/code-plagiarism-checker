@@ -51,6 +51,8 @@ kotlin {
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("com.github.ajalt.clikt:clikt:3.+")
+                implementation("mysql:mysql-connector-java:8.0.11")
+                implementation ("com.zaxxer:HikariCP:5.0.0")
             }
         }
 

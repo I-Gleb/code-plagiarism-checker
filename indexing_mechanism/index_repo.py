@@ -1,6 +1,6 @@
 import os, sys, getopt
 from pygments import lex
-from pygments.lexers import guess_lexer_for_filename
+from pygments.lexers import guess_lexer
 import mysql.connector
 
 # build reverse index of the repository in given database
@@ -8,7 +8,7 @@ def indexDirectory(dirPath : str, db : mysql.connector.connection_cext.CMySQLCon
     mycursor = db.cursor()
 
     mycursor.execute("DROP TABLE IF EXISTS tokens")
-    mycursor.execute("CREATE TABLE tokens (token VARCHAR(255), file VARCHAR(511))")
+    mycursor.execute("CREATE TABLE tokens (token VARCHAR(511), file VARCHAR(511))")
    
     for dirpath, _, filenames in os.walk(dirPath):
         if ".git" in dirpath: continue
@@ -23,17 +23,11 @@ def indexDirectory(dirPath : str, db : mysql.connector.connection_cext.CMySQLCon
             except:
                 file.close()    
 
-            my_lexer = None
-            try:
-                my_lexer = guess_lexer_for_filename(fullpath, text)
-            except:
-                pass
-
-            if my_lexer != None:
-                name_tokens = filter(lambda t : (str(t[0]) == "Token.Name"), lex(text, my_lexer))
-                sql = "INSERT INTO tokens (token, file) VALUES (%s, %s)"
-                mycursor.executemany(sql, list(set(map(lambda t : (t[1], fullpath), name_tokens))))
-                db.commit()
+            my_lexer = guess_lexer(text)
+            name_tokens = filter(lambda t : str(t[0]).startswith("Token.Name"), lex(text, my_lexer))
+            sql = "INSERT INTO tokens (token, file) VALUES (%s, %s)"
+            mycursor.executemany(sql, list(set(map(lambda t : (str(t[0]) + "." + t[1], fullpath), name_tokens))))
+            db.commit()
 
 
 def main(argv : list[str]):
